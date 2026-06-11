@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dallas Wings 2026 Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy:   #002B5C;
+      --blue:   #003D80;
+      --lime:   #C4D600;   /* Wings signature accent */
+      --lime-dark: #9EAB00;
+      --white:  #FFFFFF;
+      --gray:   #F0F3F7;
+      --mid:    #C8D0DC;
+      --text:   #0D1B2E;
+      --muted:  #5E7090;
+      --aac:    #C8102E;
+      --cpc:    #C4D600;
+      --win:    #22C55E;
+      --loss:   #EF4444;
+      --injury: #F97316;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Barlow', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--gray);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--navy);
+      color: var(--white);
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle diagonal stripe texture like Wings graphics */
+    .header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        -55deg,
+        transparent,
+        transparent 18px,
+        rgba(196,214,0,.04) 18px,
+        rgba(196,214,0,.04) 19px
+      );
+      pointer-events: none;
+    }
+
+    /* Lime accent bar at very top */
+    .header-accent-bar {
+      height: 4px;
+      background: var(--lime);
+    }
+
+    .header-inner {
+      padding: 16px 20px 0;
+      position: relative;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .team-logo {
+      width: 52px; height: 52px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.4));
+    }
+
+    .team-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 30px; font-weight: 900;
+      letter-spacing: .5px;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+    .team-name span { color: var(--lime); }
+
+    .season-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(255,255,255,.5);
+      margin-top: 3px;
+    }
+
+    .record-block { margin-left: auto; text-align: right; }
+    .record-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 44px; font-weight: 900; line-height: 1;
+      color: var(--lime);
+      letter-spacing: -1px;
+    }
+    .record-sub { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; opacity: .5; margin-top: 1px; }
+    .conf-rank-label { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 2px; font-weight: 500; }
+
+    /* Pills */
+    .pill {
+      display: inline-flex; align-items: center;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+    .pill-aac    { background: var(--aac); color: #fff; }
+    .pill-cpc    { background: var(--lime); color: var(--navy); }
+    .pill-away   { background: rgba(255,255,255,.15); color: rgba(255,255,255,.8); border: 1px solid rgba(255,255,255,.2); }
+    .pill-away-card { background: #4A5568; color: #fff; }
+    .pill-win    { background: var(--win);  color: #fff; }
+    .pill-loss   { background: var(--loss); color: #fff; }
+    .pill-active   { background: var(--win);    color: #fff; }
+    .pill-injured  { background: var(--injury); color: #fff; }
+    .pill-gtd      { background: #EAB308;        color: #1a1a1a; }
+    .pill-cup      { background: var(--lime); color: var(--navy); }
+
+    /* Legend */
+    .legend {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      padding: 10px 0 6px;
+      font-size: 11px; font-weight: 500;
+      color: rgba(255,255,255,.65);
+      align-items: center;
+      letter-spacing: .2px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      padding: 0 0;
+      margin-top: 6px;
+    }
+    .tab-btn {
+      padding: 10px 22px;
+      border: none;
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.55);
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-radius: 6px 6px 0 0;
+      transition: all .15s;
+    }
+    .tab-btn:hover { background: rgba(255,255,255,.14); color: rgba(255,255,255,.9); }
+    .tab-btn.active {
+      background: var(--gray);
+      color: var(--navy);
+    }
+
+    /* ── Main ── */
+    .main { padding: 16px 14px; max-width: 880px; margin: 0 auto; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: var(--white);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,43,92,.09);
+      overflow: hidden;
+      margin-bottom: 12px;
+      border: 1px solid rgba(0,43,92,.07);
+    }
+    .card-header {
+      padding: 10px 16px;
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      display: flex; align-items: center; gap: 8px;
+      border-left: 4px solid var(--lime);
+    }
+    .card-body { padding: 0; }
+
+    /* Game rows */
+    .game-row {
+      display: flex;
+      align-items: center;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--gray);
+      gap: 10px;
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .game-row:last-child { border-bottom: none; }
+    .game-row:hover { background: #f5f8ff; }
+    .game-row.expanded { background: #EEF3FC; border-left: 3px solid var(--lime); }
+
+    .game-date { width: 78px; flex-shrink: 0; }
+    .game-date-day {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 800;
+      color: var(--navy); text-transform: uppercase; letter-spacing: .3px;
+    }
+    .game-date-time { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    .game-opponent {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px; font-weight: 700;
+      color: var(--navy); letter-spacing: .2px;
+    }
+    .game-location { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .game-score {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px; font-weight: 900;
+      color: var(--navy); text-align: right; white-space: nowrap;
+    }
+
+    .game-detail {
+      display: none;
+      padding: 12px 18px 14px;
+      background: #EEF3FC;
+      border-bottom: 1px solid #D0DBEE;
+      border-left: 3px solid var(--lime);
+    }
+    .game-detail.open { display: block; }
+    .game-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    .game-detail-item label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--blue); display: block; margin-bottom: 2px;
+    }
+    .game-detail-item span { font-size: 13px; font-weight: 600; }
+
+    /* Standings */
+    .standings-table { width: 100%; border-collapse: collapse; }
+    .standings-table th {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .8px;
+      color: var(--muted);
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--mid);
+      text-align: center;
+    }
+    .standings-table th:first-child { text-align: left; }
+    .standings-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--gray);
+      font-size: 13px;
+      text-align: center;
+    }
+    .standings-table td:first-child { text-align: left; font-weight: 600; }
+    .standings-table tr:last-child td { border-bottom: none; }
+    .standings-table tr.wings-row td {
+      background: rgba(196,214,0,.1);
+      font-weight: 700; color: var(--navy);
+      border-bottom-color: rgba(196,214,0,.2);
+    }
+    .standings-table tr.wings-row td:first-child {
+      border-left: 3px solid var(--lime);
+    }
+
+    /* Cup note */
+    .cup-note {
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--gray);
+      font-style: italic;
+    }
+
+    /* Roster */
+    .roster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 10px;
+      padding: 12px;
+    }
+    .player-card {
+      background: var(--white);
+      border: 1px solid var(--mid);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow .15s, transform .1s;
+    }
+    .player-card:hover { box-shadow: 0 4px 14px rgba(0,43,92,.14); transform: translateY(-1px); }
+    .player-card.expanded { box-shadow: 0 4px 18px rgba(0,43,92,.18); border-color: var(--lime); }
+
+    .player-photo {
+      width: 100%; height: 130px;
+      background: linear-gradient(160deg, var(--navy) 60%, #003D80 100%);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+    }
+    .player-photo::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,43,92,.55) 0%, transparent 60%);
+    }
+    .player-photo img {
+      width: 100%; height: 100%; object-fit: cover; object-position: top center;
+    }
+    .player-photo-fallback { font-size: 44px; color: rgba(255,255,255,.2); }
+    .player-num {
+      position: absolute; top: 7px; left: 9px; z-index: 2;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 900;
+      color: var(--lime);
+      letter-spacing: .5px;
+    }
+
+    .player-info { padding: 9px 11px 10px; }
+    .player-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px; font-weight: 800;
+      color: var(--navy); margin-bottom: 2px;
+      text-transform: uppercase; letter-spacing: .3px;
+    }
+    .player-meta { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    .player-status-row { display: flex; align-items: center; justify-content: space-between; }
+
+    .player-expand {
+      display: none;
+      padding: 9px 11px;
+      border-top: 2px solid var(--lime);
+      background: rgba(196,214,0,.07);
+      font-size: 12px;
+    }
+    .player-expand.open { display: block; }
+    .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .stat-label { color: var(--muted); font-weight: 500; }
+    .stat-val { font-weight: 700; color: var(--navy); }
+    .injury-note { margin-top: 6px; font-style: italic; color: var(--injury); font-size: 11px; }
+
+    /* Loading / Error */
+    .loading-msg {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .error-msg {
+      background: #FFF5F5;
+      border: 1px solid #FEB2B2;
+      border-left: 4px solid var(--loss);
+      border-radius: 6px;
+      padding: 11px 14px;
+      color: #C53030;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .refresh-note {
+      font-size: 11px; color: var(--muted);
+      text-align: right; padding: 3px 0 10px;
+      font-weight: 500;
+    }
+    .venue-badge { margin-left: 6px; }
+    .pill-tv { background: #1a1a2e; color: #fff; margin-left: 6px; }
+    .game-tv { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Box score ── */
+    .game-stats-panel { margin-top: 14px; }
+    .game-stats-upcoming {
+      margin-top: 12px;
+      font-size: 12px; color: var(--muted); font-style: italic;
+    }
+
+    .bs-team-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--navy);
+      padding: 6px 0 4px;
+      border-bottom: 2px solid var(--lime);
+      margin-bottom: 0;
+    }
+
+    .box-score-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12px;
+      min-width: 480px;
+    }
+    .box-score-table thead th {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .6px;
+      color: var(--muted);
+      padding: 5px 6px;
+      border-bottom: 1px solid var(--mid);
+      text-align: center;
+      white-space: nowrap;
+    }
+    .box-score-table thead th.bs-name-th { text-align: left; min-width: 110px; }
+    .box-score-table td {
+      padding: 5px 6px;
+      border-bottom: 1px solid var(--gray);
+      text-align: center;
+      white-space: nowrap;
+    }
+    .box-score-table td.bs-name {
+      text-align: left; font-weight: 600;
+      color: var(--text);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    .starter-row td { background: rgba(0,43,92,.03); }
+    .starter-row td.bs-name { font-weight: 700; color: var(--navy); }
+
+    .starter-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--lime);
+      flex-shrink: 0;
+    }
+
+    .bench-divider td {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .8px;
+      color: var(--muted);
+      text-align: center;
+      padding: 4px 6px;
+      background: var(--gray);
+      border: none;
+    }
+
+    .totals-row td {
+      font-weight: 800;
+      background: rgba(0,43,92,.05);
+      border-top: 2px solid var(--mid);
+      color: var(--navy);
+    }
+    .totals-row td:first-child {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+    }
+
+    .dnp-row {
+      font-size: 11px; color: var(--muted);
+      font-style: italic; text-align: left !important;
+      padding: 5px 6px;
+      border-bottom: none;
+    }
+
+    @media (max-width: 500px) {
+      .record-num { font-size: 34px; }
+      .roster-grid { grid-template-columns: 1fr 1fr; }
+      .tab-btn { padding: 8px 14px; font-size: 13px; }
+      .team-name { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="header-accent-bar"></div>
+  <div class="header-inner">
+    <div class="header-top">
+      <img class="team-logo"
+           src="https://a.espncdn.com/i/teamlogos/wnba/500/dal.png"
+           alt="Dallas Wings"
+           onerror="this.outerHTML='<div class=\'team-logo\' style=\'width:52px;height:52px;background:var(--lime);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:900;color:var(--navy);\'>W</div>'" />
+      <div>
+        <div class="team-name">Dallas <span>Wings</span></div>
+        <div class="season-label">2026 WNBA Season</div>
+      </div>
+      <div class="record-block">
+        <div class="record-num" id="record">—</div>
+        <div class="record-sub">W – L</div>
+        <div class="conf-rank-label" id="conf-rank"></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="legend-item"><span class="pill pill-aac">AAC</span> American Airlines Center</span>
+      <span class="legend-item"><span class="pill pill-cpc" style="color:var(--navy);">CPC</span> College Park Center</span>
+      <span class="legend-item"><span class="pill pill-away">Away</span> Road game</span>
+      <span class="legend-item"><span class="pill pill-cup">☕ Cup</span> Commissioner's Cup</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('schedule', event)">Schedule</button>
+      <button class="tab-btn" onclick="switchTab('standings', event)">Standings</button>
+      <button class="tab-btn" onclick="switchTab('roster', event)">Roster</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <div class="refresh-note" id="last-updated">Loading…</div>
+
+  <!-- Schedule Tab -->
+  <div class="tab-panel active" id="tab-schedule">
+    <div id="schedule-error"></div>
+
+    <div class="card" id="card-upcoming">
+      <div class="card-header">📅 Upcoming Games</div>
+      <div class="card-body" id="upcoming-games"><div class="loading-msg">Fetching schedule…</div></div>
+    </div>
+
+    <div class="card" id="card-recent">
+      <div class="card-header">🏀 Recent Results</div>
+      <div class="card-body" id="recent-games"><div class="loading-msg">Fetching results…</div></div>
+    </div>
+  </div>
+
+  <!-- Standings Tab -->
+  <div class="tab-panel" id="tab-standings">
+    <div id="standings-error"></div>
+    <div class="card">
+      <div class="card-header">🏆 WNBA Standings — 2026</div>
+      <div class="card-body">
+        <table class="standings-table">
+          <thead>
+            <tr>
+              <th>Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th><th>Home</th><th>Away</th><th>Streak</th>
+            </tr>
+          </thead>
+          <tbody id="standings-body"><tr><td colspan="8"><div class="loading-msg">Loading standings…</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">🥤 Commissioner's Cup Standings</div>
+      <div class="card-body">
+        <table class="standings-table">
+          <thead>
+            <tr><th>Team</th><th>W</th><th>L</th><th>PCT</th><th>Conf</th></tr>
+          </thead>
+          <tbody id="cup-body"><tr><td colspan="5"><div class="loading-msg">Loading Cup standings…</div></td></tr></tbody>
+        </table>
+        <div class="cup-note" id="cup-note">Commissioner's Cup games are highlighted in the schedule. Cup standings update automatically from game results.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Roster Tab -->
+  <div class="tab-panel" id="tab-roster">
+    <div id="roster-error"></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="tab-btn active" style="border-radius:8px;background:var(--navy);color:#fff;border:none;" onclick="filterRoster('all', this)">All</button>
+      <button class="tab-btn" style="border-radius:8px;background:#fff;color:var(--navy);border:1px solid var(--mid);" onclick="filterRoster('active', this)">Active</button>
+      <button class="tab-btn" style="border-radius:8px;background:#fff;color:var(--navy);border:1px solid var(--mid);" onclick="filterRoster('injured', this)">Injured / GTD</button>
+    </div>
+    <div class="roster-grid" id="roster-grid">
+      <div class="loading-msg" style="grid-column:1/-1">Loading roster…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ───────────────────────────────────────────────────────────────
+const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/basketball/wnba';
+const SEASON    = 2026;
+const WINGS_ID  = '3'; // Dallas Wings ESPN team ID
+let TEAM_ID     = WINGS_ID;
+let allPlayers  = [];
+let currentRosterFilter = 'all';
+
+function espnURL(path) {
+  return ESPN_BASE + path;
+}
+
+// ── Venue detection ───────────────────────────────────────────────────────
+function detectVenue(venueName = '', locationStr = '') {
+  const combined = (venueName + ' ' + locationStr).toLowerCase();
+  if (combined.includes('american airlines center') || combined.includes('american airlines arena') && combined.includes('dallas')) {
+    return { label: 'AAC', cls: 'pill-aac', full: 'American Airlines Center' };
+  }
+  if (combined.includes('college park')) {
+    return { label: 'CPC', cls: 'pill-cpc', full: 'College Park Center' };
+  }
+  return null;
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(name, evt) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (evt) evt.currentTarget.classList.add('active');
+}
+
+// ── Game row expand + lazy box score load ────────────────────────────────
+const boxScoreCache = {};
+
+async function toggleGame(id, statusType) {
+  const row    = document.getElementById('game-row-' + id);
+  const detail = document.getElementById('game-detail-' + id);
+  if (!row || !detail) return;
+
+  const opening = !detail.classList.contains('open');
+  detail.classList.toggle('open', opening);
+  row.classList.toggle('expanded', opening);
+
+  if (!opening) return;
+
+  // Only fetch box score for completed or live games
+  if (statusType !== 'post' && statusType !== 'in') return;
+  if (boxScoreCache[id]) { renderBoxScore(id, boxScoreCache[id]); return; }
+
+  const statsEl = document.getElementById('game-stats-' + id);
+  if (statsEl) statsEl.innerHTML = '<div class="loading-msg" style="padding:16px;">Loading player stats…</div>';
+
+  try {
+    const data = await fetchJSON(`https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${id}`);
+    boxScoreCache[id] = data;
+    renderBoxScore(id, data);
+  } catch(e) {
+    if (statsEl) statsEl.innerHTML = `<div class="loading-msg" style="padding:12px;color:var(--muted);">Stats unavailable</div>`;
+  }
+}
+
+const BOX_COLS = ['MIN','PTS','REB','AST','STL','BLK','TO','FG','3PT','FT'];
+
+function renderBoxScore(gameId, data) {
+  const statsEl = document.getElementById('game-stats-' + gameId);
+  if (!statsEl) return;
+
+  const players = data.boxscore?.players || [];
+  if (!players.length) { statsEl.innerHTML = ''; return; }
+
+  // Find Wings group (team id '3')
+  const wingsGroup = players.find(g => g.team?.id === WINGS_ID);
+  const oppGroup   = players.find(g => g.team?.id !== WINGS_ID);
+
+  function buildTeamTable(group, label) {
+    if (!group) return '';
+    const statBlock = group.statistics?.[0];
+    if (!statBlock) return '';
+
+    const allLabels = statBlock.labels || [];
+    // Pick which columns to show and their indices
+    const colMap = BOX_COLS.map(c => ({ col: c, idx: allLabels.indexOf(c) })).filter(c => c.idx >= 0);
+
+    const athletes = statBlock.athletes || [];
+    const starters = athletes.filter(a => a.starter && !a.didNotPlay);
+    const bench    = athletes.filter(a => !a.starter && !a.didNotPlay);
+    const dnp      = athletes.filter(a => a.didNotPlay);
+    const totals   = statBlock.totals || [];
+
+    function row(a, isStarter) {
+      const name = a.athlete?.shortName || a.athlete?.displayName || '?';
+      const stats = a.stats || [];
+      return `<tr class="${isStarter ? 'starter-row' : ''}">
+        <td class="bs-name">${isStarter ? '<span class="starter-dot"></span>' : ''}${name}</td>
+        ${colMap.map(c => `<td>${stats[c.idx] ?? '–'}</td>`).join('')}
+      </tr>`;
+    }
+
+    const totalRow = totals.length
+      ? `<tr class="totals-row">
+          <td>TEAM</td>
+          ${colMap.map(c => `<td>${totals[c.idx] ?? ''}</td>`).join('')}
+         </tr>`
+      : '';
+
+    const dnpRow = dnp.length
+      ? `<tr><td colspan="${colMap.length + 1}" class="dnp-row">DNP: ${dnp.map(a => a.athlete?.displayName).join(', ')}</td></tr>`
+      : '';
+
+    return `
+      <div class="bs-team-label">${label}</div>
+      <div style="overflow-x:auto;">
+        <table class="box-score-table">
+          <thead>
+            <tr>
+              <th class="bs-name-th">Player</th>
+              ${colMap.map(c => `<th>${c.col}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${starters.map(a => row(a, true)).join('')}
+            <tr class="bench-divider"><td colspan="${colMap.length + 1}">— Bench —</td></tr>
+            ${bench.map(a => row(a, false)).join('')}
+            ${totalRow}
+            ${dnpRow}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  statsEl.innerHTML =
+    buildTeamTable(wingsGroup, 'Dallas Wings') +
+    (oppGroup ? `<div style="margin-top:16px;"></div>` + buildTeamTable(oppGroup, oppGroup.team?.displayName || 'Opponent') : '');
+}
+
+// ── Player card expand ────────────────────────────────────────────────────
+function togglePlayer(id) {
+  const exp = document.getElementById('player-expand-' + id);
+  const card = document.getElementById('player-card-' + id);
+  if (!exp) return;
+  exp.classList.toggle('open');
+  card && card.classList.toggle('expanded');
+}
+
+// ── Roster filter ─────────────────────────────────────────────────────────
+function filterRoster(filter, btn) {
+  currentRosterFilter = filter;
+  document.querySelectorAll('#tab-roster .tab-btn').forEach(b => {
+    b.style.background = '#fff'; b.style.color = 'var(--navy)';
+  });
+  if (btn) { btn.style.background = 'var(--navy)'; btn.style.color = '#fff'; }
+  renderRoster(allPlayers);
+}
+
+// ── Fetch helpers ─────────────────────────────────────────────────────────
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+function showError(elId, msg) {
+  const el = document.getElementById(elId);
+  if (el) el.innerHTML = `<div class="error-msg">⚠️ ${msg}</div>`;
+}
+
+// Team ID is hardcoded — Dallas Wings = ESPN ID 3
+
+// ── Schedule ──────────────────────────────────────────────────────────────
+async function loadSchedule(teamId) {
+  const data = await fetchJSON(espnURL(`/teams/${teamId}/schedule?season=${SEASON}`));
+  const events = data.events || [];
+
+  const now = new Date();
+  const upcoming = [];
+  const recent = [];
+
+  events.forEach(ev => {
+    const gameDate = new Date(ev.date);
+    const comp = ev.competitions?.[0];
+    if (!comp) return;
+
+    const home = comp.competitors?.find(c => c.homeAway === 'home');
+    const away = comp.competitors?.find(c => c.homeAway === 'away');
+    const isWings = (t) => t?.team?.id === teamId;
+    const opp = isWings(home) ? away : home;
+    const wingsComp = isWings(home) ? home : away;
+    const isHome = isWings(home);
+
+    const venue = comp.venue || {};
+    const venueInfo = detectVenue(venue.fullName || venue.displayName || '', (venue.address?.city || ''));
+
+    const statusType = comp.status?.type?.state || 'pre';
+    const wScoreVal = wingsComp?.score?.displayValue ?? wingsComp?.score ?? '?';
+    const oScoreVal = opp?.score?.displayValue ?? opp?.score ?? '?';
+    const score = statusType === 'post' ? `${wScoreVal} – ${oScoreVal}` : null;
+    const wScore = parseFloat(wingsComp?.score?.value ?? wingsComp?.score ?? 0);
+    const oScore = parseFloat(opp?.score?.value ?? opp?.score ?? 0);
+    const result = statusType === 'post' ? (wScore > oScore ? 'W' : 'L') : null;
+
+    const cupGame = (comp.notes || []).some(n => n.headline?.toLowerCase().includes("commissioner"));
+
+    // TV broadcast — filter to channels available in Austin, TX (exclude RSNs like Bally Sports, NESN, etc.)
+    const AUSTIN_CHANNELS = ['ION','ESPN','ESPN2','ABC','NBA TV','NBATV','WNBA League Pass','League Pass','TNT','TBS','truTV','MAX','Prime Video','Amazon','Peacock','CBS','NBC','FOX','FS1','FS2'];
+    const broadcasts = comp.broadcasts || [];
+    const allChannels = broadcasts.flatMap(b => {
+      if (b.names && Array.isArray(b.names)) return b.names.filter(n => typeof n === 'string');
+      if (b.media?.shortName) return [b.media.shortName];
+      if (b.media?.displayName) return [b.media.displayName];
+      if (typeof b.market === 'string') return [b.market];
+      return [];
+    }).filter(Boolean);
+    const tvChannels = allChannels.filter(ch =>
+      AUSTIN_CHANNELS.some(ac => ch.toUpperCase().includes(ac.toUpperCase()))
+    );
+
+    const game = { id: ev.id, date: gameDate, opp, isHome, venueInfo, venue, score, result, statusType, wingsComp, cupGame, tvChannels, ev };
+
+    if (gameDate >= now || statusType === 'in') upcoming.push(game);
+    else recent.push(game);
+  });
+
+  recent.sort((a, b) => b.date - a.date);
+  upcoming.sort((a, b) => a.date - b.date);
+
+  renderGames('upcoming-games', upcoming.slice(0, 10), 'No upcoming games found.');
+  renderGames('recent-games', recent.slice(0, 10), 'No recent results yet.', true);
+
+  // Update record from team summary fields
+  const team = data.team || {};
+  if (team.recordSummary) {
+    document.getElementById('record').textContent = team.recordSummary.replace('-', '–');
+  }
+  if (team.standingSummary) {
+    document.getElementById('conf-rank').textContent = team.standingSummary;
+  }
+
+  return { upcoming, recent };
+}
+
+function renderGames(containerId, games, emptyMsg, showResult = false) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  if (!games.length) {
+    el.innerHTML = `<div class="loading-msg">${emptyMsg}</div>`;
+    return;
+  }
+
+  el.innerHTML = games.map(g => {
+    const dateStr = g.date.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+    const timeStr = g.statusType === 'in'
+      ? '<span style="color:var(--loss);font-weight:700;">LIVE</span>'
+      : g.statusType === 'post'
+        ? 'Final'
+        : g.date.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+
+    const oppName = g.opp?.team?.shortDisplayName || g.opp?.team?.displayName || 'TBD';
+    const homeAway = g.isHome ? 'vs' : 'at';
+    const venueName = g.venueInfo ? g.venueInfo.full : (g.venue?.fullName || (g.isHome ? 'Home' : 'Away'));
+
+    const venBadge = g.venueInfo
+      ? `<span class="pill ${g.venueInfo.cls} venue-badge">${g.venueInfo.label}</span>`
+      : g.isHome ? `<span class="pill pill-cpc venue-badge" style="color:var(--navy);">CPC</span>`
+                 : `<span class="pill pill-away-card venue-badge">AWAY</span>`;
+
+    const cupBadge = g.cupGame ? `<span class="pill" style="background:gold;color:#333;margin-left:4px;">☕ Cup</span>` : '';
+    const resultBadge = g.result ? `<span class="pill pill-${g.result === 'W' ? 'win' : 'loss'}">${g.result}</span>` : '';
+    const scoreDisplay = g.score || '';
+
+    const tvBadges = (g.tvChannels || []).map(ch => `<span class="pill pill-tv">📺 ${ch}</span>`).join(' ');
+    const tvDetail = (g.tvChannels || []).length ? g.tvChannels.join(', ') : 'TBD';
+
+    const hasStats = g.statusType === 'post' || g.statusType === 'in';
+    return `
+      <div class="game-row" id="game-row-${g.id}" onclick="toggleGame('${g.id}','${g.statusType}')">
+        <div class="game-date">
+          <div class="game-date-day">${dateStr}</div>
+          <div class="game-date-time">${timeStr}</div>
+        </div>
+        <div style="flex:1;">
+          <div class="game-opponent">${homeAway} ${oppName}${venBadge}${cupBadge}</div>
+          <div class="game-location">${venueName}${tvBadges ? ' &nbsp;' + tvBadges : ''}</div>
+        </div>
+        <div>
+          ${resultBadge}
+          ${scoreDisplay ? `<div class="game-score">${scoreDisplay}</div>` : ''}
+        </div>
+        <div style="color:var(--mid);font-size:16px;">›</div>
+      </div>
+      <div class="game-detail" id="game-detail-${g.id}">
+        <div class="game-detail-grid">
+          <div class="game-detail-item"><label>Date &amp; Time</label><span>${g.date.toLocaleString('en-US',{weekday:'long',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>
+          <div class="game-detail-item"><label>Venue</label><span>${venueName}</span></div>
+          <div class="game-detail-item"><label>Matchup</label><span>Wings ${homeAway} ${g.opp?.team?.displayName || 'TBD'}</span></div>
+          <div class="game-detail-item"><label>TV</label><span>${tvDetail}</span></div>
+          ${g.result ? `<div class="game-detail-item"><label>Result</label><span style="color:${g.result==='W'?'var(--win)':'var(--loss)'};">${g.result === 'W' ? 'Win' : 'Loss'} ${g.score}</span></div>` : ''}
+          ${g.cupGame ? `<div class="game-detail-item"><label>Commissioner's Cup</label><span>☕ Cup game</span></div>` : ''}
+        </div>
+        ${hasStats ? `<div id="game-stats-${g.id}" class="game-stats-panel"><div class="loading-msg" style="padding:16px;">Click to load player stats…</div></div>` : `<div class="game-stats-upcoming">No stats yet — game hasn't been played.</div>`}
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Standings ─────────────────────────────────────────────────────────────
+async function loadStandings(teamId) {
+  // Note: standings uses /apis/v2/ not /apis/site/v2/
+  const data = await fetch('https://site.api.espn.com/apis/v2/sports/basketball/wnba/standings').then(r => r.json());
+  const groups = data.children || [];
+
+  const allTeams = [];
+  groups.forEach(conf => {
+    const standings = conf.standings?.entries || [];
+    standings.forEach(entry => {
+      const stats = {};
+      (entry.stats || []).forEach(s => { stats[s.name] = s.displayValue ?? s.value; });
+      allTeams.push({
+        id: entry.team?.id,
+        name: entry.team?.displayName || entry.team?.name,
+        conf: conf.name || '',
+        wins: entry.stats?.find(s => s.name === 'wins')?.value ?? 0,
+        losses: entry.stats?.find(s => s.name === 'losses')?.value ?? 0,
+        pct: stats.winPercent ?? '–',
+        gb: stats.gamesBehind ?? '–',
+        home: stats['Home'] ?? '–',
+        away: stats['Road'] ?? '–',
+        streak: stats.streak ?? '–',
+        seed: entry.stats?.find(s => s.name === 'playoffSeed')?.value,
+      });
+    });
+  });
+
+  // Sort by wins desc within each conf, then overall by pct
+  allTeams.sort((a, b) => b.wins - a.wins || a.losses - b.losses);
+
+  // Group by conference for display
+  const eastTeams = allTeams.filter(t => t.conf.toLowerCase().includes('east'));
+  const westTeams = allTeams.filter(t => t.conf.toLowerCase().includes('west'));
+
+  function teamRow(t) {
+    return `<tr class="${t.id === teamId ? 'wings-row' : ''}">
+      <td>${t.name}</td>
+      <td>${t.wins}</td><td>${t.losses}</td>
+      <td>${t.pct}</td><td>${t.gb === 0 || t.gb === '0.0' ? '—' : t.gb}</td>
+      <td>${t.home}</td><td>${t.away}</td><td>${t.streak}</td>
+    </tr>`;
+  }
+
+  const tbody = document.getElementById('standings-body');
+  tbody.innerHTML = `
+    <tr><td colspan="8" style="padding:6px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--blue);background:var(--gray);">Western Conference</td></tr>
+    ${westTeams.map(teamRow).join('')}
+    <tr><td colspan="8" style="padding:6px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--blue);background:var(--gray);">Eastern Conference</td></tr>
+    ${eastTeams.map(teamRow).join('')}
+  `;
+
+  // Conference rank for Wings
+  const wingsWest = westTeams.findIndex(t => t.id === teamId);
+  const wingsEast = eastTeams.findIndex(t => t.id === teamId);
+  const wingsRank = wingsWest >= 0 ? `#${wingsWest + 1} West` : wingsEast >= 0 ? `#${wingsEast + 1} East` : '';
+  if (wingsRank) document.getElementById('conf-rank').textContent = wingsRank;
+
+  // Commissioner's Cup — use Cup game results from schedule
+  renderCupStandings(allTeams, teamId);
+}
+
+function renderCupStandings(allTeams, teamId) {
+  // ESPN doesn't have a dedicated Cup endpoint; we render a filtered note
+  const tbody = document.getElementById('cup-body');
+  tbody.innerHTML = `<tr><td colspan="5">
+    <div class="loading-msg" style="padding:16px;font-size:13px;">
+      Commissioner's Cup standings are not available via the ESPN API.<br>
+      <a href="https://www.wnba.com/commissioners-cup" target="_blank" style="color:var(--blue);font-weight:600;">View official Cup standings on WNBA.com →</a>
+    </div>
+  </td></tr>`;
+  document.getElementById('cup-note').textContent =
+    'Cup games are marked ☕ in the schedule. Official standings at WNBA.com.';
+}
+
+// ── Roster ────────────────────────────────────────────────────────────────
+async function loadRoster(teamId) {
+  const data = await fetchJSON(espnURL(`/teams/${teamId}/roster`));
+  const athletes = data.athletes || [];
+
+  allPlayers = athletes.map(a => {
+    const injStatus = a.injuries?.[0]?.status || null;
+    const statusLabel = injStatus
+      ? (injStatus.toLowerCase().includes('out') ? 'injured'
+         : injStatus.toLowerCase().includes('questionable') || injStatus.toLowerCase().includes('probable') ? 'gtd'
+         : 'active')
+      : 'active';
+
+    const ht = a.displayHeight || a.height || null;
+    const college = a.college?.name || a.college?.shortName || null;
+    const age = a.age || null;
+
+    return {
+      id: a.id,
+      name: a.fullName || a.displayName,
+      number: a.jersey || '–',
+      position: a.position?.displayName || a.position?.abbreviation || '–',
+      photo: a.headshot?.href || null,
+      statusLabel,
+      injStatus,
+      injDesc: a.injuries?.[0]?.status || injStatus || null,
+      bio: { Height: ht, Age: age ? `${age} yrs` : null, College: college },
+    };
+  });
+
+  renderRoster(allPlayers);
+}
+
+function renderRoster(players) {
+  const el = document.getElementById('roster-grid');
+  const filtered = players.filter(p => {
+    if (currentRosterFilter === 'active') return p.statusLabel === 'active';
+    if (currentRosterFilter === 'injured') return p.statusLabel !== 'active';
+    return true;
+  });
+
+  if (!filtered.length) {
+    el.innerHTML = '<div class="loading-msg" style="grid-column:1/-1">No players match this filter.</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(p => {
+    const statusPill = p.statusLabel === 'active'
+      ? `<span class="pill pill-active">Active</span>`
+      : p.statusLabel === 'gtd'
+        ? `<span class="pill pill-gtd">GTD</span>`
+        : `<span class="pill pill-injured">OUT</span>`;
+
+    const photoHtml = p.photo
+      ? `<img src="${p.photo}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><div class="player-photo-fallback" style="display:none;">👤</div>`
+      : `<div class="player-photo-fallback">👤</div>`;
+
+    return `
+      <div class="player-card" id="player-card-${p.id}" onclick="togglePlayer('${p.id}')">
+        <div class="player-photo">
+          <span class="player-num">#${p.number}</span>
+          ${photoHtml}
+        </div>
+        <div class="player-info">
+          <div class="player-name">${p.name}</div>
+          <div class="player-meta">#${p.number} · ${p.position}</div>
+          <div class="player-status-row">${statusPill}</div>
+        </div>
+        <div class="player-expand" id="player-expand-${p.id}">
+          ${Object.entries(p.bio).filter(([,v]) => v).map(([k,v]) => `
+            <div class="stat-row"><span class="stat-label">${k}</span><span class="stat-val">${v}</span></div>
+          `).join('')}
+          ${p.injDesc ? `<div class="injury-note">⚠ ${p.injDesc}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────
+async function init() {
+  TEAM_ID = WINGS_ID;
+
+  const results = await Promise.allSettled([
+    loadSchedule(TEAM_ID).catch(e => { showError('schedule-error', 'Schedule unavailable: ' + e.message); }),
+    loadStandings(TEAM_ID).catch(e => { showError('standings-error', 'Standings unavailable: ' + e.message); }),
+    loadRoster(TEAM_ID).catch(e => { showError('roster-error', 'Roster unavailable: ' + e.message); }),
+  ]);
+
+  document.getElementById('last-updated').textContent =
+    'Last updated: ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+// Auto-refresh every 5 minutes
+init();
+setInterval(init, 5 * 60 * 1000);
+</script>
+</body>
+</html>
