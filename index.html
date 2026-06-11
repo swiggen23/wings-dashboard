@@ -375,6 +375,8 @@
       font-weight: 500;
     }
     .venue-badge { margin-left: 6px; }
+    .pill-tv { background: #1a1a2e; color: #fff; margin-left: 6px; }
+    .game-tv { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
     /* ── Box score ── */
     .game-stats-panel { margin-top: 14px; }
@@ -773,7 +775,21 @@ async function loadSchedule(teamId) {
 
     const cupGame = (comp.notes || []).some(n => n.headline?.toLowerCase().includes("commissioner"));
 
-    const game = { id: ev.id, date: gameDate, opp, isHome, venueInfo, venue, score, result, statusType, wingsComp, cupGame, ev };
+    // TV broadcast — filter to channels available in Austin, TX (exclude RSNs like Bally Sports, NESN, etc.)
+    const AUSTIN_CHANNELS = ['ION','ESPN','ESPN2','ABC','NBA TV','NBATV','WNBA League Pass','League Pass','TNT','TBS','truTV','MAX','Prime Video','Amazon','Peacock','CBS','NBC','FOX','FS1','FS2'];
+    const broadcasts = comp.broadcasts || [];
+    const allChannels = broadcasts.flatMap(b => {
+      if (b.names && Array.isArray(b.names)) return b.names.filter(n => typeof n === 'string');
+      if (b.media?.shortName) return [b.media.shortName];
+      if (b.media?.displayName) return [b.media.displayName];
+      if (typeof b.market === 'string') return [b.market];
+      return [];
+    }).filter(Boolean);
+    const tvChannels = allChannels.filter(ch =>
+      AUSTIN_CHANNELS.some(ac => ch.toUpperCase().includes(ac.toUpperCase()))
+    );
+
+    const game = { id: ev.id, date: gameDate, opp, isHome, venueInfo, venue, score, result, statusType, wingsComp, cupGame, tvChannels, ev };
 
     if (gameDate >= now || statusType === 'in') upcoming.push(game);
     else recent.push(game);
@@ -827,6 +843,9 @@ function renderGames(containerId, games, emptyMsg, showResult = false) {
     const resultBadge = g.result ? `<span class="pill pill-${g.result === 'W' ? 'win' : 'loss'}">${g.result}</span>` : '';
     const scoreDisplay = g.score || '';
 
+    const tvBadges = (g.tvChannels || []).map(ch => `<span class="pill pill-tv">📺 ${ch}</span>`).join(' ');
+    const tvDetail = (g.tvChannels || []).length ? g.tvChannels.join(', ') : 'TBD';
+
     const hasStats = g.statusType === 'post' || g.statusType === 'in';
     return `
       <div class="game-row" id="game-row-${g.id}" onclick="toggleGame('${g.id}','${g.statusType}')">
@@ -836,7 +855,7 @@ function renderGames(containerId, games, emptyMsg, showResult = false) {
         </div>
         <div style="flex:1;">
           <div class="game-opponent">${homeAway} ${oppName}${venBadge}${cupBadge}</div>
-          <div class="game-location">${venueName}</div>
+          <div class="game-location">${venueName}${tvBadges ? ' &nbsp;' + tvBadges : ''}</div>
         </div>
         <div>
           ${resultBadge}
@@ -849,6 +868,7 @@ function renderGames(containerId, games, emptyMsg, showResult = false) {
           <div class="game-detail-item"><label>Date &amp; Time</label><span>${g.date.toLocaleString('en-US',{weekday:'long',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>
           <div class="game-detail-item"><label>Venue</label><span>${venueName}</span></div>
           <div class="game-detail-item"><label>Matchup</label><span>Wings ${homeAway} ${g.opp?.team?.displayName || 'TBD'}</span></div>
+          <div class="game-detail-item"><label>TV</label><span>${tvDetail}</span></div>
           ${g.result ? `<div class="game-detail-item"><label>Result</label><span style="color:${g.result==='W'?'var(--win)':'var(--loss)'};">${g.result === 'W' ? 'Win' : 'Loss'} ${g.score}</span></div>` : ''}
           ${g.cupGame ? `<div class="game-detail-item"><label>Commissioner's Cup</label><span>☕ Cup game</span></div>` : ''}
         </div>
